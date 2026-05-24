@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  title: Swagger Ecobint - OpenAPI 3.1
+  version: 1.0.0
+  description: API responsável pela comunicação entre dispositivos IoT de lixeiras inteligentes e a aplicação mobile da plataforma Ecobint. A API permite o envio do nível de enchimento das lixeiras para monitoramento, gerenciamento e acompanhamento em tempo real.
+
+paths:
+  /bin:
+    post:
+      tags:
+        - Dispositivo
+      summary: Enviar informações da lixeira.
+      description: Endpoint utilizado pelo dispositivo IoT para enviar o nível atual de enchimento da lixeira inteligente.
+      operationId: postBinStatus
+      requestBody:
+        description: Porcentagem da lixeira atual.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BinStatusRequest'
+        required: true
+      responses:
+        '204':
+          description: Status recebido com sucesso.
+        '400':
+          description: Dados inválidos enviados na requisição.
+        '500':
+          description: Erro interno do servidor.
+components:
+  schemas:
+    BinStatusRequest:
+      type: object
+      properties:
+        porcentagemEnchimento:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.5
+          description: Percentual atual de enchimento da lixeira.
+      required:
+        - porcentagemEnchimento
