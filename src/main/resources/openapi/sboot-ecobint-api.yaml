@@ -5,13 +5,58 @@ info:
   description: API responsável pela comunicação entre dispositivos IoT de lixeiras inteligentes e a aplicação mobile da plataforma Ecobint. A API permite o envio do nível de enchimento das lixeiras para monitoramento, gerenciamento e acompanhamento em tempo real.
 
 paths:
-  /bin:
+  /bin/{binId}:
+    get:
+      tags:
+        - Dispositivo
+      summary: Obter informações da lixeira.
+      description: Endpoint utilizado pela aplicação mobile para obter informações da lixeira.
+      operationId: getBin
+      parameters:
+        - name: binId
+          in: path
+          description: ID da lixeira.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Informações da lixeira obtidas com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BinResponse'
+        '400':
+          description: Dados inválidos enviados na requisição.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Lixeira não encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
     post:
       tags:
         - Dispositivo
-      summary: Enviar informações da lixeira.
+      summary: Enviar informações de enchimento da lixeira.
       description: Endpoint utilizado pelo dispositivo IoT para enviar o nível atual de enchimento da lixeira inteligente.
       operationId: postBinStatus
+      parameters:
+        - name: binId
+          in: path
+          description: ID da lixeira.
+          required: true
+          schema:
+            type: string
       requestBody:
         description: Porcentagem da lixeira atual.
         content:
@@ -24,19 +69,56 @@ paths:
           description: Status recebido com sucesso.
         '400':
           description: Dados inválidos enviados na requisição.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
         '500':
           description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 components:
   schemas:
+    StandardError:
+      type: object
+      properties:
+        codigo:
+          type: integer
+        mensagem:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - codigo
+        - mensagem
+        - timestamp
     BinStatusRequest:
       type: object
       properties:
         porcentagemEnchimento:
           type: number
-          format: float
+          format: double
           minimum: 0
           maximum: 1
           example: 0.5
           description: Percentual atual de enchimento da lixeira.
       required:
         - porcentagemEnchimento
+    BinResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        nome:
+          type: string
+        localizacao:
+          type: string
+        nivelEnchimento:
+          type: number
+          format: double
+        ultimaAtualizacao:
+          type: string
+          format: date-time
