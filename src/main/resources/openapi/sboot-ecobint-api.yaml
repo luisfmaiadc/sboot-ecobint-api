@@ -79,6 +79,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StandardError'
+  /bins:
+    get:
+      tags:
+        - Dispositivo
+      summary: Obter informações de todas as lixeiras (provisório).
+      description: Endpoint utilizado pela aplicação mobile para obter informações de todas as lixeiras cadastradas.
+      operationId: getAllBins
+      responses:
+        '200':
+          description: Informações das lixeiras obtidas com sucesso.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BinResponse'
+        '400':
+          description: Dados inválidos enviados na requisição.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '204':
+          description: Nenhuma lixeira cadastrada.
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 components:
   schemas:
     StandardError:

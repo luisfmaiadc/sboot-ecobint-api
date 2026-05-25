@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,5 +28,10 @@ public class BinServiceImpl implements BinService {
     public Bin getBin(String binId) {
         return binRepository.findById(binId)
                 .orElseThrow(() -> new BinNotFoundException("Lixeira não encontrada com id: " + binId));
+    }
+
+    @Override
+    public List<Bin> getAllBins() {
+        return binRepository.findAll();
     }
 }
