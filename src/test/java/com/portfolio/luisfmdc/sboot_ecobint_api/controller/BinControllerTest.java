@@ -3,6 +3,7 @@ package com.portfolio.luisfmdc.sboot_ecobint_api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinResponse;
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinStatusRequest;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.NewBinRequest;
 import com.portfolio.luisfmdc.sboot_ecobint_api.config.exception.BinNotFoundException;
 import com.portfolio.luisfmdc.sboot_ecobint_api.domain.Bin;
 import com.portfolio.luisfmdc.sboot_ecobint_api.mapper.BinMapper;
@@ -16,14 +17,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BinController.class)
 class BinControllerTest {
@@ -43,6 +44,7 @@ class BinControllerTest {
     private Bin bin;
     private BinResponse binResponse;
     private BinStatusRequest binStatusRequest;
+    private NewBinRequest newBinRequest;
 
     @BeforeEach
     void setUp() {
@@ -56,6 +58,23 @@ class BinControllerTest {
 
         binStatusRequest = new BinStatusRequest();
         binStatusRequest.setPorcentagemEnchimento(0.75);
+
+        newBinRequest = new NewBinRequest();
+        newBinRequest.setNome("Bin 1");
+        newBinRequest.setLocalizacao("Location 1");
+    }
+
+    @Test
+    void postNewBin_shouldReturnCreatedAndLocationHeader() throws Exception {
+        when(binService.postNewBin(any(NewBinRequest.class))).thenReturn(bin);
+
+        mockMvc.perform(post("/bin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newBinRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "http://localhost/bin/1"));
+
+        verify(binService, times(1)).postNewBin(any(NewBinRequest.class));
     }
 
     @Test
@@ -103,5 +122,29 @@ class BinControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(binService, never()).postBinStatus(anyString(), any());
+    }
+
+    @Test
+    void getAllBins_shouldReturnListOfBinResponses_whenBinsExist() throws Exception {
+        when(binService.getAllBins()).thenReturn(List.of(bin));
+        when(binMapper.toBinResponseList(anyList())).thenReturn(List.of(binResponse));
+
+        mockMvc.perform(get("/bins"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("1"));
+
+        verify(binService, times(1)).getAllBins();
+        verify(binMapper, times(1)).toBinResponseList(anyList());
+    }
+
+    @Test
+    void getAllBins_shouldReturnNoContent_whenNoBinsExist() throws Exception {
+        when(binService.getAllBins()).thenReturn(List.of());
+
+        mockMvc.perform(get("/bins"))
+                .andExpect(status().isNoContent());
+
+        verify(binService, times(1)).getAllBins();
+        verify(binMapper, never()).toBinResponseList(anyList());
     }
 }

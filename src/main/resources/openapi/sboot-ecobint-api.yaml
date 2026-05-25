@@ -5,6 +5,41 @@ info:
   description: API responsável pela comunicação entre dispositivos IoT de lixeiras inteligentes e a aplicação mobile da plataforma Ecobint. A API permite o envio do nível de enchimento das lixeiras para monitoramento, gerenciamento e acompanhamento em tempo real.
 
 paths:
+  /bin:
+    post:
+      tags:
+        - Dispositivo
+      summary: Adicionar nova lixeira.
+      description: Endpoint utilizado pela aplicação mobile para adicionar uma nova lixeira.
+      operationId: postNewBin
+      requestBody:
+        description: Informações da nova lixeira.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBinRequest'
+        required: true
+      responses:
+        '201':
+          description: Lixeira criada com sucesso.
+          headers:
+            Location:
+              description: URL para a nova lixeira criada.
+              schema:
+                type: string
+                format: uri
+        '400':
+          description: Dados inválidos enviados na requisição.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
   /bin/{binId}:
     get:
       tags:
@@ -152,3 +187,17 @@ components:
         ultimaAtualizacao:
           type: string
           format: date-time
+    NewBinRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 100
+        localizacao:
+          type: string
+          minLength: 1
+          maxLength: 100
+      required:
+        - nome
+        - localizacao

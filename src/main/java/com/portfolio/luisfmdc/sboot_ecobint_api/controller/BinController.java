@@ -4,6 +4,7 @@ import com.portfolio.luisfmdc.ecobint.infrastructure.api.BinApi;
 import com.portfolio.luisfmdc.ecobint.infrastructure.api.BinsApi;
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinResponse;
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinStatusRequest;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.NewBinRequest;
 import com.portfolio.luisfmdc.sboot_ecobint_api.domain.Bin;
 import com.portfolio.luisfmdc.sboot_ecobint_api.mapper.BinMapper;
 import com.portfolio.luisfmdc.sboot_ecobint_api.service.BinService;
@@ -11,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @Slf4j
@@ -36,6 +39,18 @@ public class BinController implements BinApi, BinsApi {
         binService.postBinStatus(binId, binStatusRequest);
         log.info("[BinController] Status da lixeira id={} atualizado com sucesso.", binId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> postNewBin(NewBinRequest newBinRequest) {
+        log.info("[BinController] Iniciando criação de nova lixeira.");
+        Bin newBin = binService.postNewBin(newBinRequest);
+        log.info("[BinController] Lixeira com id={} criada com sucesso.", newBin.getId());
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(newBin.getId())
+                .toUri();
+        return ResponseEntity.created(uri).build();
     }
 
     @Override

@@ -1,8 +1,10 @@
 package com.portfolio.luisfmdc.sboot_ecobint_api.service.impl;
 
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinStatusRequest;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.NewBinRequest;
 import com.portfolio.luisfmdc.sboot_ecobint_api.domain.Bin;
 import com.portfolio.luisfmdc.sboot_ecobint_api.config.exception.BinNotFoundException;
+import com.portfolio.luisfmdc.sboot_ecobint_api.mapper.BinMapper;
 import com.portfolio.luisfmdc.sboot_ecobint_api.repository.BinRepository;
 import com.portfolio.luisfmdc.sboot_ecobint_api.service.BinService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,13 @@ import java.util.List;
 public class BinServiceImpl implements BinService {
 
     private final BinRepository binRepository;
+    private final BinMapper binMapper;
+
+    @Override
+    public Bin postNewBin(NewBinRequest newBinRequest) {
+        Bin bin = binMapper.toBin(newBinRequest);
+        return binRepository.save(bin);
+    }
 
     @Override
     public void postBinStatus(String binId, BinStatusRequest binStatusRequest) {
