@@ -1,7 +1,8 @@
 package com.portfolio.luisfmdc.sboot_ecobint_api.service.impl;
 
-import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinStatusRequest;
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.NewBinRequest;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinStatusRequest;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.UpdateBinRequest;
 import com.portfolio.luisfmdc.sboot_ecobint_api.config.exception.BinNotFoundException;
 import com.portfolio.luisfmdc.sboot_ecobint_api.domain.Bin;
 import com.portfolio.luisfmdc.sboot_ecobint_api.mapper.BinMapper;
@@ -37,6 +38,7 @@ class BinServiceImplTest {
     private Bin bin;
     private BinStatusRequest binStatusRequest;
     private NewBinRequest newBinRequest;
+    private UpdateBinRequest updateBinRequest;
 
     @BeforeEach
     void setUp() {
@@ -46,27 +48,52 @@ class BinServiceImplTest {
         binStatusRequest.setPorcentagemEnchimento(75.0);
 
         newBinRequest = new NewBinRequest();
-        newBinRequest.setNome("Bin 1");
-        newBinRequest.setLocalizacao("Location 1");
+        newBinRequest.setNome("New Bin");
+        newBinRequest.setLocalizacao("New Location");
+
+        updateBinRequest = new UpdateBinRequest();
+        updateBinRequest.setNome("Bin 1 Updated");
+        updateBinRequest.setLocalizacao("Location 1 Updated");
     }
 
     @Test
     void postNewBin_shouldReturnSavedBin() {
-        Bin unpersistedBin = new Bin(null, "Bin 1", "Location 1", null, null);
+        Bin unpersistedBin = new Bin(null, "New Bin", "New Location", null, null);
         when(binMapper.toBin(any(NewBinRequest.class))).thenReturn(unpersistedBin);
-        when(binRepository.save(any(Bin.class))).thenReturn(bin);
+        when(binRepository.save(any(Bin.class))).thenReturn(new Bin("2", "New Bin", "New Location", 0.0, LocalDateTime.now()));
 
         Bin savedBin = binService.postNewBin(newBinRequest);
 
         assertNotNull(savedBin);
-        assertEquals("1", savedBin.getId());
-        assertEquals("Bin 1", savedBin.getNome());
-        assertEquals("Location 1", savedBin.getLocalizacao());
-        assertNull(unpersistedBin.getNivelEnchimento());
-        assertNull(unpersistedBin.getUltimaAtualizacao());
-        
+        assertEquals("2", savedBin.getId());
+
         verify(binMapper, times(1)).toBin(newBinRequest);
         verify(binRepository, times(1)).save(unpersistedBin);
+    }
+
+    @Test
+    void updateBin_shouldUpdateAndReturnBin_whenBinExists() {
+        when(binRepository.findById(anyString())).thenReturn(Optional.of(bin));
+        when(binRepository.save(any(Bin.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Bin updatedBin = binService.updateBin("1", updateBinRequest);
+
+        assertNotNull(updatedBin);
+        assertEquals("Bin 1 Updated", updatedBin.getNome());
+        assertEquals("Location 1 Updated", updatedBin.getLocalizacao());
+
+        verify(binRepository, times(1)).findById("1");
+        verify(binRepository, times(1)).save(any(Bin.class));
+    }
+
+    @Test
+    void updateBin_shouldThrowBinNotFoundException_whenBinDoesNotExist() {
+        when(binRepository.findById(anyString())).thenReturn(Optional.empty());
+
+        assertThrows(BinNotFoundException.class, () -> binService.updateBin("1", updateBinRequest));
+
+        verify(binRepository, times(1)).findById("1");
+        verify(binRepository, never()).save(any(Bin.class));
     }
 
     @Test

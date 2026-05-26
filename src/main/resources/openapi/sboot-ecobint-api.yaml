@@ -114,6 +114,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StandardError'
+    put:
+      tags:
+        - Dispositivo
+      summary: Atualizar informações da lixeira.
+      description: Endpoint utilizado pelo dispositivo IoT para atualizar informações da lixeira.
+      operationId: updateBin
+      parameters:
+        - name: binId
+          in: path
+          description: ID da lixeira.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informações atualizadas da lixeira.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBinRequest'
+        required: true
+      responses:
+        '200':
+          description: Informações da lixeira atualizadas com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BinResponse'
+        '400':
+          description: Dados inválidos enviados na requisição.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
   /bins:
     get:
       tags:
@@ -201,3 +240,14 @@ components:
       required:
         - nome
         - localizacao
+    UpdateBinRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 100
+        localizacao:
+          type: string
+          minLength: 1
+          maxLength: 100

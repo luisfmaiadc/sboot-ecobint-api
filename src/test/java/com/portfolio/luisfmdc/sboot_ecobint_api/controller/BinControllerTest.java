@@ -1,9 +1,10 @@
 package com.portfolio.luisfmdc.sboot_ecobint_api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.NewBinRequest;
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinResponse;
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinStatusRequest;
-import com.portfolio.luisfmdc.ecobint.infrastructure.dto.NewBinRequest;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.UpdateBinRequest;
 import com.portfolio.luisfmdc.sboot_ecobint_api.config.exception.BinNotFoundException;
 import com.portfolio.luisfmdc.sboot_ecobint_api.domain.Bin;
 import com.portfolio.luisfmdc.sboot_ecobint_api.mapper.BinMapper;
@@ -22,8 +23,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BinController.class)
@@ -45,6 +45,7 @@ class BinControllerTest {
     private BinResponse binResponse;
     private BinStatusRequest binStatusRequest;
     private NewBinRequest newBinRequest;
+    private UpdateBinRequest updateBinRequest;
 
     @BeforeEach
     void setUp() {
@@ -60,8 +61,12 @@ class BinControllerTest {
         binStatusRequest.setPorcentagemEnchimento(0.75);
 
         newBinRequest = new NewBinRequest();
-        newBinRequest.setNome("Bin 1");
-        newBinRequest.setLocalizacao("Location 1");
+        newBinRequest.setNome("New Bin");
+        newBinRequest.setLocalizacao("New Location");
+
+        updateBinRequest = new UpdateBinRequest();
+        updateBinRequest.setNome("Bin 1 Updated");
+        updateBinRequest.setLocalizacao("Location 1 Updated");
     }
 
     @Test
@@ -75,6 +80,41 @@ class BinControllerTest {
                 .andExpect(header().string("Location", "http://localhost/bin/1"));
 
         verify(binService, times(1)).postNewBin(any(NewBinRequest.class));
+    }
+
+    @Test
+    void updateBin_shouldReturnBinResponse_whenBinExists() throws Exception {
+        Bin updatedBin = new Bin("1", "Bin 1 Updated", "Location 1 Updated", 50.0, bin.getUltimaAtualizacao());
+        BinResponse updatedBinResponse = new BinResponse();
+        updatedBinResponse.setId("1");
+        updatedBinResponse.setNome("Bin 1 Updated");
+        updatedBinResponse.setLocalizacao("Location 1 Updated");
+
+        when(binService.updateBin(eq("1"), any(UpdateBinRequest.class))).thenReturn(updatedBin);
+        when(binMapper.toBinResponse(any(Bin.class))).thenReturn(updatedBinResponse);
+
+        mockMvc.perform(put("/bin/{binId}", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateBinRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Bin 1 Updated"))
+                .andExpect(jsonPath("$.localizacao").value("Location 1 Updated"));
+
+        verify(binService, times(1)).updateBin(eq("1"), any(UpdateBinRequest.class));
+        verify(binMapper, times(1)).toBinResponse(updatedBin);
+    }
+
+    @Test
+    void updateBin_shouldReturnNotFound_whenBinDoesNotExist() throws Exception {
+        when(binService.updateBin(eq("1"), any(UpdateBinRequest.class))).thenThrow(new BinNotFoundException("Lixeira não encontrada"));
+
+        mockMvc.perform(put("/bin/{binId}", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateBinRequest)))
+                .andExpect(status().isNotFound());
+
+        verify(binService, times(1)).updateBin(eq("1"), any(UpdateBinRequest.class));
+        verify(binMapper, never()).toBinResponse(any());
     }
 
     @Test

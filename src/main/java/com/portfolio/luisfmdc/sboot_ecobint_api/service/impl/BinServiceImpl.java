@@ -2,6 +2,7 @@ package com.portfolio.luisfmdc.sboot_ecobint_api.service.impl;
 
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinStatusRequest;
 import com.portfolio.luisfmdc.ecobint.infrastructure.dto.NewBinRequest;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.UpdateBinRequest;
 import com.portfolio.luisfmdc.sboot_ecobint_api.domain.Bin;
 import com.portfolio.luisfmdc.sboot_ecobint_api.config.exception.BinNotFoundException;
 import com.portfolio.luisfmdc.sboot_ecobint_api.mapper.BinMapper;
@@ -37,6 +38,16 @@ public class BinServiceImpl implements BinService {
     public Bin getBin(String binId) {
         return binRepository.findById(binId)
                 .orElseThrow(() -> new BinNotFoundException("Lixeira não encontrada com id: " + binId));
+    }
+
+    @Override
+    public Bin updateBin(String binId, UpdateBinRequest binRequest) {
+        Bin bin = getBin(binId);
+        if (binRequest.getNome() != null && !binRequest.getNome().isBlank())
+            bin.setNome(binRequest.getNome());
+        if (binRequest.getLocalizacao() != null && !binRequest.getLocalizacao().isBlank())
+            bin.setLocalizacao(binRequest.getLocalizacao());
+        return binRepository.save(bin);
     }
 
     @Override

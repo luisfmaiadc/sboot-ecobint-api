@@ -2,9 +2,7 @@ package com.portfolio.luisfmdc.sboot_ecobint_api.controller;
 
 import com.portfolio.luisfmdc.ecobint.infrastructure.api.BinApi;
 import com.portfolio.luisfmdc.ecobint.infrastructure.api.BinsApi;
-import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinResponse;
-import com.portfolio.luisfmdc.ecobint.infrastructure.dto.BinStatusRequest;
-import com.portfolio.luisfmdc.ecobint.infrastructure.dto.NewBinRequest;
+import com.portfolio.luisfmdc.ecobint.infrastructure.dto.*;
 import com.portfolio.luisfmdc.sboot_ecobint_api.domain.Bin;
 import com.portfolio.luisfmdc.sboot_ecobint_api.mapper.BinMapper;
 import com.portfolio.luisfmdc.sboot_ecobint_api.service.BinService;
@@ -51,6 +49,14 @@ public class BinController implements BinApi, BinsApi {
                 .buildAndExpand(newBin.getId())
                 .toUri();
         return ResponseEntity.created(uri).build();
+    }
+
+    @Override
+    public ResponseEntity<BinResponse> updateBin(String binId, UpdateBinRequest binRequest) {
+        log.info("[BinController] Iniciando atualização de dados da lixeira id={}.", binId);
+        Bin updatedBin = binService.updateBin(binId, binRequest);
+        log.info("[BinController] Dados da lixeira id={} atualizados com sucesso.", binId);
+        return ResponseEntity.ok(binMapper.toBinResponse(updatedBin));
     }
 
     @Override
